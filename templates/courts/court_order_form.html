@@ -1,0 +1,106 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-gray-800">{{ title }}</h1>
+                <a href="{% url 'courts:court_order_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Orders
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Court Order Information</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> {{ submit_text }}
+                            </button>
+                            <a href="{% url 'courts:court_order_list' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Order Types</h6>
+                </div>
+                <div class="card-body">
+                    <h6>Order Definitions:</h6>
+                    <ul class="small">
+                        <li><strong>Sentence:</strong> Formal judgment and punishment</li>
+                        <li><strong>Probation Order:</strong> Conditions for probation</li>
+                        <li><strong>Probation Termination:</strong> Ends probation period</li>
+                        <li><strong>Order Modification:</strong> Changes to existing order</li>
+                        <li><strong>Bench Warrant:</strong> Arrest warrant from judge</li>
+                        <li><strong>Other:</strong> Miscellaneous court orders</li>
+                    </ul>
+                    <h6>Order Requirements:</h6>
+                    <ul class="small">
+                        <li>Clear and specific language</li>
+                        <li>Proper legal citations if needed</li>
+                        <li>Effective date should be realistic</li>
+                        <li>Judge signature required</li>
+                        <li>File upload for official documents</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add date picker functionality
+    const orderDateField = document.getElementById('id_order_date');
+    const effectiveDateField = document.getElementById('id_effective_date');
+    
+    if (orderDateField) {
+        orderDateField.type = 'date';
+    }
+    if (effectiveDateField) {
+        effectiveDateField.type = 'date';
+    }
+    
+    // Dynamic judge loading based on court case
+    const courtCaseField = document.getElementById('id_court_case');
+    const judgeField = document.getElementById('id_judge');
+    
+    if (courtCaseField && judgeField) {
+        courtCaseField.addEventListener('change', function() {
+            const courtCaseId = this.value;
+            if (courtCaseId) {
+                fetch(`/courts/ajax/get-judges/?court_id=${courtCaseId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        judgeField.innerHTML = '<option value="">Select Judge</option>';
+                        data.forEach(judge => {
+                            const option = document.createElement('option');
+                            option.value = judge.id;
+                            option.textContent = judge.name;
+                            judgeField.appendChild(option);
+                        });
+                    });
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

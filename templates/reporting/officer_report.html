@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Officer Performance Reports</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>Print Report
+        </button>
+    </div>
+</div>
+
+<!-- Officer Statistics -->
+<div class="row mb-4">
+    {% for officer in officers %}
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">{{ officer.get_full_name }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <h4 class="text-primary">{{ officer.client_count }}</h4>
+                        <small>Clients</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-success">{{ officer.case_count }}</h4>
+                        <small>Cases</small>
+                    </div>
+                    <div class="col-4">
+                        <h4 class="text-info">{{ officer.appointment_count }}</h4>
+                        <small>Appointments</small>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <small class="text-muted">Department: {{ officer.department }}</small><br>
+                    <small class="text-muted">Badge: {{ officer.badge_number }}</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5>No Officer Data</h5>
+            <p class="mb-0">No officer performance data available at this time.</p>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Workload Distribution -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Workload Distribution</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Officer</th>
+                        <th>Active Clients</th>
+                        <th>Open Cases</th>
+                        <th>Upcoming Appointments</th>
+                        <th>Workload Score</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for officer in officers %}
+                    <tr>
+                        <td>
+                            <strong>{{ officer.get_full_name }}</strong>
+                            <br>
+                            <small class="text-muted">{{ officer.department }}</small>
+                        </td>
+                        <td>{{ officer.client_count }}</td>
+                        <td>{{ officer.case_count }}</td>
+                        <td>{{ officer.appointment_count }}</td>
+                        <td>
+                            {% with workload=officer.client_count|add:officer.case_count|add:officer.appointment_count %}
+                                {% if workload > 50 %}
+                                <span class="badge bg-danger">High</span>
+                                {% elif workload > 25 %}
+                                <span class="badge bg-warning">Medium</span>
+                                {% else %}
+                                <span class="badge bg-success">Low</span>
+                                {% endif %}
+                                ({{ workload }})
+                            {% endwith %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Performance Metrics -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Performance Metrics</h5>
+    </div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h3 class="text-primary">{{ total_clients }}</h3>
+                        <p class="mb-0">Total Clients Managed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h3 class="text-success">{{ active_cases }}</h3>
+                        <p class="mb-0">Active Cases</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h3 class="text-info">{{ total_appointments }}</h3>
+                        <p class="mb-0">Scheduled Appointments</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3 mb-3">
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <h3 class="text-warning">{{ officers.count }}</h3>
+                        <p class="mb-0">Active Officers</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

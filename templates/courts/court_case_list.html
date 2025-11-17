@@ -1,0 +1,172 @@
+{% extends 'base.html' %}
+
+
+{% block title %}Court Cases{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Court Cases</h1>
+                {% if user.is_staff %}
+                <a href="{% url 'courts:court_case_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add New Case
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <form method="get" class="form-inline">
+                        <div class="form-group mr-3 mb-2">
+                            <label for="status" class="mr-2">Status:</label>
+                            <select name="status" id="status" class="form-control">
+                                <option value="">All Statuses</option>
+                                <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+                                <option value="ACTIVE" {% if status_filter == 'ACTIVE' %}selected{% endif %}>Active</option>
+                                <option value="CLOSED" {% if status_filter == 'CLOSED' %}selected{% endif %}>Closed</option>
+                                <option value="APPEALED" {% if status_filter == 'APPEALED' %}selected{% endif %}>Appealed</option>
+                            </select>
+                        </div>
+                        <div class="form-group mr-3 mb-2">
+                            <label for="court" class="mr-2">Court:</label>
+                            <select name="court" id="court" class="form-control">
+                                <option value="">All Courts</option>
+                                {% for court in courts %}
+                                <option value="{{ court.id }}" {% if court_filter == court.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ court.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group mr-3 mb-2">
+                            <label for="judge" class="mr-2">Judge:</label>
+                            <select name="judge" id="judge" class="form-control">
+                                <option value="">All Judges</option>
+                                {% for judge in judges %}
+                                <option value="{{ judge.id }}" {% if judge_filter == judge.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ judge.get_full_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group mr-3 mb-2">
+                            <label for="search" class="mr-2">Search:</label>
+                            <input type="text" name="search" id="search" class="form-control" 
+                                   placeholder="Case number or client..." value="{{ search_query }}">
+                        </div>
+                        <div class="form-group mb-2">
+                            <button type="submit" class="btn btn-primary mr-2">Filter</button>
+                            <a href="{% url 'courts:court_case_list' %}" class="btn btn-outline-secondary">Clear</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Court Cases Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    {% if court_cases %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Case Number</th>
+                                    <th>Client</th>
+                                    <th>Court</th>
+                                    <th>Judge</th>
+                                    <th>Filing Date</th>
+                                    <th>Next Hearing</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for case in court_cases %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ case.case_number }}</strong>
+                                        {% if case.case.is_high_profile %}
+                                        <span class="badge badge-danger ml-1" title="High Profile Case">HP</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'clients:client_detail' case.case.client.pk %}">
+                                            {{ case.case.client.get_full_name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        {{ case.court.name }}
+                                    </td>
+                                    <td>
+                                        {% if case.judge %}
+                                        {{ case.judge.get_full_name }}
+                                        {% else %}
+                                        <span class="text-muted">Not assigned</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {{ case.filing_date|date:"M d, Y" }}
+                                    </td>
+                                    <td>
+                                        {% if case.next_hearing_date %}
+                                        {{ case.next_hearing_date|date:"M d, Y" }}
+                                        {% else %}
+                                        <span class="text-muted">No hearing scheduled</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <span class="badge 
+                                            {% if case.status == 'ACTIVE' %}badge-success
+                                            {% elif case.status == 'PENDING' %}badge-warning
+                                            {% elif case.status == 'CLOSED' %}badge-secondary
+                                            {% else %}badge-info{% endif %}">
+                                            {{ case.get_status_display }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'courts:court_case_detail' case.pk %}" class="btn btn-outline-primary" title="View Details">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if user.is_staff %}
+                                            <a href="#" class="btn btn-outline-secondary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-folder-open fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Court Cases Found</h4>
+                        <p class="text-muted">No court cases match your search criteria.</p>
+                        {% if user.is_staff %}
+                        <a href="{% url 'courts:court_case_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create First Court Case
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

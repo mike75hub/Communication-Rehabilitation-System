@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-gray-800">{{ title }}</h1>
+                <a href="{% url 'courts:hearing_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Hearings
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Hearing Information</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> {{ submit_text }}
+                            </button>
+                            <a href="{% url 'courts:hearing_list' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Hearing Types</h6>
+                </div>
+                <div class="card-body">
+                    <h6>Hearing Definitions:</h6>
+                    <ul class="small">
+                        <li><strong>Arraignment:</strong> Defendant enters plea</li>
+                        <li><strong>Pre-trial Conference:</strong> Discussion before trial</li>
+                        <li><strong>Motion Hearing:</strong> Arguments on legal motions</li>
+                        <li><strong>Trial:</strong> Main court proceeding</li>
+                        <li><strong>Sentencing:</strong> Judge announces sentence</li>
+                        <li><strong>Review Hearing:</strong> Case progress review</li>
+                        <li><strong>Violation Hearing:</strong> Probation violation hearing</li>
+                    </ul>
+                    <h6>Scheduling Tips:</h6>
+                    <ul class="small">
+                        <li>Check judge availability</li>
+                        <li>Ensure proper notice period</li>
+                        <li>Coordinate with all parties</li>
+                        <li>Consider travel time for participants</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Add datetime picker functionality
+    const hearingDateField = document.getElementById('id_hearing_date');
+    if (hearingDateField) {
+        hearingDateField.type = 'datetime-local';
+    }
+    
+    // Dynamic judge loading based on court case
+    const courtCaseField = document.getElementById('id_court_case');
+    const judgeField = document.getElementById('id_judge');
+    
+    if (courtCaseField && judgeField) {
+        courtCaseField.addEventListener('change', function() {
+            const courtCaseId = this.value;
+            if (courtCaseId) {
+                fetch(`/courts/ajax/get-judges/?court_id=${courtCaseId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        judgeField.innerHTML = '<option value="">Select Judge</option>';
+                        data.forEach(judge => {
+                            const option = document.createElement('option');
+                            option.value = judge.id;
+                            option.textContent = judge.name;
+                            judgeField.appendChild(option);
+                        });
+                    });
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

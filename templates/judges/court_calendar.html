@@ -1,0 +1,192 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-calendar-alt me-2"></i>Court Calendar
+        <small class="text-muted">- Upcoming Hearings</small>
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'judges:judge_dashboard' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Calendar Period -->
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    Showing court calendar from <strong>{{ start_date|date:"M d, Y" }}</strong> to <strong>{{ end_date|date:"M d, Y" }}</strong>
+</div>
+
+<!-- Calendar View -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Court Schedule ({{ court_cases.count }} hearings)</h5>
+    </div>
+    <div class="card-body">
+        {% if court_cases %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Time</th>
+                            <th>Case Number</th>
+                            <th>Client</th>
+                            <th>Court Type</th>
+                            <th>Case Type</th>
+                            <th>Status</th>
+                            <th>Days Until</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for case in court_cases %}
+                        <tr>
+                            <td>
+                                <strong>{{ case.next_court_date|date:"M d, Y" }}</strong>
+                                <br>
+                                <small class="text-muted">{{ case.next_court_date|date:"l" }}</small>
+                            </td>
+                            <td>
+                                <span class="badge bg-primary">9:00 AM</span>
+                            </td>
+                            <td><strong>{{ case.case_number }}</strong></td>
+                            <td>
+                                {{ case.client.full_name }}
+                                {% if case.is_high_profile %}
+                                <span class="badge bg-danger ms-1">High Profile</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ case.get_court_type_display }}</td>
+                            <td>
+                                {% if case.status == 'sentenced' %}
+                                <span class="badge bg-info">Sentencing Review</span>
+                                {% else %}
+                                <span class="badge bg-warning">Hearing</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge 
+                                    {% if case.status == 'open' %}bg-primary
+                                    {% elif case.status == 'closed' %}bg-success
+                                    {% elif case.status == 'sentenced' %}bg-info
+                                    {% else %}bg-warning{% endif %}">
+                                    {{ case.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                {% if case.days_until_court %}
+                                    <span class="badge 
+                                        {% if case.days_until_court < 0 %}bg-secondary
+                                        {% elif case.days_until_court == 0 %}bg-danger
+                                        {% elif case.days_until_court < 7 %}bg-warning
+                                        {% else %}bg-success{% endif %}">
+                                        {% if case.days_until_court == 0 %}
+                                            Today
+                                        {% elif case.days_until_court == 1 %}
+                                            Tomorrow
+                                        {% elif case.days_until_court < 0 %}
+                                            Past due
+                                        {% else %}
+                                            {{ case.days_until_court }} days
+                                        {% endif %}
+                                    </span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'judges:judge_case_detail' case.pk %}" class="btn btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-outline-success" onclick="rescheduleHearing({{ case.id }})">
+                                        <i class="fas fa-calendar-edit"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                <h5 class="text-muted">No Court Hearings Scheduled</h5>
+                <p class="text-muted">There are no court hearings scheduled for the selected period.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Monthly Calendar View -->
+<div class="card mt-4">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Monthly Calendar View</h5>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            {% for date_str, day_cases in calendar_events.items %}
+            <div class="col-md-4 mb-3">
+                <div class="card {% if day_cases %}border-primary{% endif %}">
+                    <div class="card-header {% if day_cases %}bg-primary text-white{% endif %}">
+                        <h6 class="card-title mb-0">
+                            {{ date_str|slice:"5:7" }}/{{ date_str|slice:"8:10" }}/{{ date_str|slice:"0:4" }}
+                            <span class="badge bg-{% if day_cases %}light text-dark{% else %}secondary{% endif %} float-end">
+                                {{ day_cases|length }}
+                            </span>
+                        </h6>
+                    </div>
+                    <div class="card-body">
+                        {% if day_cases %}
+                            {% for case in day_cases %}
+                            <div class="border-start border-3 border-primary ps-2 mb-2">
+                                <small class="fw-bold">{{ case.case_number }}</small><br>
+                                <small class="text-muted">{{ case.client.full_name }}</small><br>
+                                <small class="text-muted">{{ case.get_court_type_display }}</small>
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <small class="text-muted">No hearings</small>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12 text-center py-4">
+                <p class="text-muted">No court dates in the selected period.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<script>
+function rescheduleHearing(caseId) {
+    const newDate = prompt('Enter new court date (YYYY-MM-DD):');
+    if (newDate) {
+        fetch('{% url "judges:reschedule_hearing" %}', {
+            method: 'POST',
+            body: JSON.stringify({
+                case_id: caseId,
+                new_date: newDate
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error rescheduling: ' + data.error);
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

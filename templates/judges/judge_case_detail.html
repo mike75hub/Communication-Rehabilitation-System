@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-gavel me-2"></i>Case Details
+        <small class="text-muted">- {{ case.case_number }}</small>
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'judges:judge_cases' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Cases
+        </a>
+    </div>
+</div>
+
+<!-- Case Information -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Case Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr><th>Case Number:</th><td>{{ case.case_number }}</td></tr>
+                    <tr><th>Client:</th><td>{{ case.client.full_name }}</td></tr>
+                    <tr><th>Probation Officer:</th><td>{{ case.officer.get_full_name }}</td></tr>
+                    <tr><th>Court Type:</th><td>{{ case.get_court_type_display }}</td></tr>
+                    <tr><th>Status:</th>
+                        <td>
+                            <span class="badge 
+                                {% if case.status == 'open' %}bg-primary
+                                {% elif case.status == 'closed' %}bg-success
+                                {% elif case.status == 'sentenced' %}bg-info
+                                {% else %}bg-warning{% endif %}">
+                                {{ case.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr><th>Opening Date:</th><td>{{ case.opening_date|date:"M d, Y" }}</td></tr>
+                    {% if case.sentencing_date %}
+                    <tr><th>Sentencing Date:</th><td>{{ case.sentencing_date|date:"M d, Y" }}</td></tr>
+                    {% endif %}
+                    {% if case.next_court_date %}
+                    <tr><th>Next Court Date:</th>
+                        <td>
+                            {{ case.next_court_date|date:"M d, Y" }}
+                            {% if case.days_until_court %}
+                                <br><small class="text-{% if case.days_until_court < 7 %}danger{% else %}warning{% endif %}">
+                                    ({{ case.days_until_court }} day{{ case.days_until_court|pluralize }})
+                                </small>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endif %}
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Case Objectives</h5>
+            </div>
+            <div class="card-body">
+                <p>{{ case.objectives }}</p>
+                
+                {% if case.special_conditions %}
+                <h6>Special Conditions:</h6>
+                <p>{{ case.special_conditions }}</p>
+                {% endif %}
+                
+                {% if case.is_high_profile %}
+                <span class="badge bg-danger">High Profile Case</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Rehabilitation Plans -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Rehabilitation Plans</h5>
+    </div>
+    <div class="card-body">
+        {% if rehabilitation_plans %}
+            {% for plan in rehabilitation_plans %}
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h6 class="card-title mb-0">{{ plan.title }}</h6>
+                    {% if plan.judicial_review_required %}
+                    <span class="badge bg-warning float-end">Review Required</span>
+                    {% endif %}
+                </div>
+                <div class="card-body">
+                    <p>{{ plan.description }}</p>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <strong>Progress:</strong>
+                            <div class="progress mt-1">
+                                <div class="progress-bar 
+                                    {% if plan.progress_percentage < 50 %}bg-danger
+                                    {% elif plan.progress_percentage < 80 %}bg-warning
+                                    {% else %}bg-success{% endif %}" 
+                                    style="width: {{ plan.progress_percentage }}%">
+                                    {{ plan.progress_percentage|floatformat:0 }}%
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Period:</strong><br>
+                            {{ plan.start_date|date:"M d, Y" }} to {{ plan.end_date|date:"M d, Y" }}
+                        </div>
+                        <div class="col-md-4">
+                            <strong>Status:</strong><br>
+                            {% if plan.is_completed %}
+                            <span class="badge bg-success">Completed</span>
+                            {% else %}
+                            <span class="badge bg-warning">In Progress</span>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p class="text-muted text-center py-3">No rehabilitation plans for this case.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

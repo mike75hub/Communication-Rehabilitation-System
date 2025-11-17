@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+
+
+{% block title %}Court Orders{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Court Orders</h1>
+                {% if user.is_staff %}
+                <a href="{% url 'courts:court_order_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Create Order
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <form method="get" class="form-inline">
+                        <div class="form-group mr-3">
+                            <label for="order_type" class="mr-2">Order Type:</label>
+                            <select name="order_type" id="order_type" class="form-control">
+                                <option value="">All Types</option>
+                                {% for type_value, type_label in court_orders.0.ORDER_TYPES %}
+                                <option value="{{ type_value }}" {% if order_type_filter == type_value %}selected{% endif %}>
+                                    {{ type_label }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group mr-3">
+                            <label for="court" class="mr-2">Court:</label>
+                            <select name="court" id="court" class="form-control">
+                                <option value="">All Courts</option>
+                                {% for court in courts %}
+                                <option value="{{ court.id }}" {% if court_filter == court.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ court.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group mr-3">
+                            <label for="judge" class="mr-2">Judge:</label>
+                            <select name="judge" id="judge" class="form-control">
+                                <option value="">All Judges</option>
+                                {% for judge in judges %}
+                                <option value="{{ judge.id }}" {% if judge_filter == judge.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ judge.get_full_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary mr-2">Filter</button>
+                        <a href="{% url 'courts:court_order_list' %}" class="btn btn-outline-secondary">Clear</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Court Orders Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    {% if court_orders %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Order Date</th>
+                                    <th>Type</th>
+                                    <th>Case</th>
+                                    <th>Client</th>
+                                    <th>Judge</th>
+                                    <th>Effective Date</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for order in court_orders %}
+                                <tr>
+                                    <td>{{ order.order_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge badge-info">{{ order.get_order_type_display }}</span>
+                                    </td>
+                                    <td>
+                                        <a href="{% url 'courts:court_case_detail' order.court_case.pk %}">
+                                            {{ order.court_case.case_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ order.court_case.case.client.get_full_name }}</td>
+                                    <td>{{ order.judge.get_full_name }}</td>
+                                    <td>{{ order.effective_date|date:"M d, Y" }}</td>
+                                    <td>
+                                        <span class="badge badge-{% if order.is_active %}success{% else %}secondary{% endif %}">
+                                            {% if order.is_active %}Active{% else %}Inactive{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'courts:court_order_detail' order.pk %}" class="btn btn-outline-primary" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if user.is_staff %}
+                                            <a href="{% url 'courts:court_order_edit' order.pk %}" class="btn btn-outline-secondary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-file-contract fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Court Orders Found</h4>
+                        <p class="text-muted">No court orders match your search criteria.</p>
+                        {% if user.is_staff %}
+                        <a href="{% url 'courts:court_order_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create First Order
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Client Reports</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'client_report_pdf' %}" class="btn btn-sm btn-danger">
+                <i class="fas fa-file-pdf me-2"></i>Export PDF
+            </a>
+            <a href="{% url 'client_report' %}?format=csv" class="btn btn-sm btn-success">
+                <i class="fas fa-file-csv me-2"></i>Export CSV
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Summary Statistics -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ total_clients }}</h3>
+                <p class="mb-0">Total Clients</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">{{ active_clients }}</h3>
+                <p class="mb-0">Active Clients</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-danger">{{ violated_clients }}</h3>
+                <p class="mb-0">Violated Clients</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-info">{{ completed_clients }}</h3>
+                <p class="mb-0">Completed Cases</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Risk Level Breakdown -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Risk Level Distribution</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Risk Level</th>
+                            <th>Count</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for level in risk_levels %}
+                        <tr>
+                            <td>
+                                <span class="badge 
+                                    {% if level.risk_level == 'low' %}bg-success
+                                    {% elif level.risk_level == 'medium' %}bg-warning
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ level.risk_level|title }}
+                                </span>
+                            </td>
+                            <td>{{ level.count }}</td>
+                            <td>{{ level.percentage|floatformat:1 }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Breakdown -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Status Distribution</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Count</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for status in status_counts %}
+                        <tr>
+                            <td>
+                                <span class="badge 
+                                    {% if status.status == 'active' %}bg-primary
+                                    {% elif status.status == 'completed' %}bg-success
+                                    {% else %}bg-danger{% endif %}">
+                                    {{ status.status|title }}
+                                </span>
+                            </td>
+                            <td>{{ status.count }}</td>
+                            <td>{{ status.percentage|floatformat:1 }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Client List -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Client Details</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Case Number</th>
+                        <th>Name</th>
+                        <th>Assigned Officer</th>
+                        <th>Status</th>
+                        <th>Risk Level</th>
+                        <th>Start Date</th>
+                        <th>End Date</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in clients %}
+                    <tr>
+                        <td>{{ client.case_number }}</td>
+                        <td>{{ client.first_name }} {{ client.last_name }}</td>
+                        <td>{{ client.assigned_officer.get_full_name }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if client.status == 'active' %}bg-primary
+                                {% elif client.status == 'completed' %}bg-success
+                                {% else %}bg-danger{% endif %}">
+                                {{ client.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if client.risk_level == 'low' %}bg-success
+                                {% elif client.risk_level == 'medium' %}bg-warning
+                                {% else %}bg-danger{% endif %}">
+                                {{ client.get_risk_level_display }}
+                            </span>
+                        </td>
+                        <td>{{ client.start_date|date:"M d, Y" }}</td>
+                        <td>{{ client.end_date|date:"M d, Y" }}</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            No clients found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-gray-800">{{ title }}</h1>
+                <a href="{% url 'courts:court_case_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Cases
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Case Information</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> {{ submit_text }}
+                            </button>
+                            <a href="{% url 'courts:court_case_list' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Help</h6>
+                </div>
+                <div class="card-body">
+                    <h6>Creating Court Cases:</h6>
+                    <ul class="small">
+                        <li>Ensure the case number is unique</li>
+                        <li>Link to an existing rehabilitation case</li>
+                        <li>Assign the appropriate court and judge</li>
+                        <li>Set the correct filing date</li>
+                    </ul>
+                    <h6>Status Definitions:</h6>
+                    <ul class="small">
+                        <li><strong>Pending:</strong> Case is filed but not yet active</li>
+                        <li><strong>Active:</strong> Case is currently being processed</li>
+                        <li><strong>Closed:</strong> Case has been resolved</li>
+                        <li><strong>Appealed:</strong> Case is under appeal</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

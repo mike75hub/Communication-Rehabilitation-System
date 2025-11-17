@@ -1,0 +1,208 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block title %}Court Calendar{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Court Calendar</h1>
+                <div>
+                    <a href="{% url 'courts:hearing_create' %}" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Schedule Hearing
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <form method="get" class="form-inline">
+                        <div class="form-group mr-3">
+                            <label for="start_date" class="mr-2">From:</label>
+                            <input type="date" name="start_date" id="start_date" class="form-control" 
+                                   value="{{ start_date|date:'Y-m-d' }}">
+                        </div>
+                        <div class="form-group mr-3">
+                            <label for="end_date" class="mr-2">To:</label>
+                            <input type="date" name="end_date" id="end_date" class="form-control" 
+                                   value="{{ end_date|date:'Y-m-d' }}">
+                        </div>
+                        <div class="form-group mr-3">
+                            <label for="court" class="mr-2">Court:</label>
+                            <select name="court" id="court" class="form-control">
+                                <option value="">All Courts</option>
+                                {% for court in courts %}
+                                <option value="{{ court.id }}" {% if request.GET.court == court.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ court.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary mr-2">Update Calendar</button>
+                        <a href="{% url 'courts:court_calendar_overview' %}" class="btn btn-outline-secondary">Reset</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar View -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">
+                        Court Schedule: {{ start_date|date:"F d, Y" }} - {{ end_date|date:"F d, Y" }}
+                    </h6>
+                </div>
+                <div class="card-body">
+                    {% if calendar_events %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th width="15%">Date</th>
+                                    <th>Hearings</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for date_str, day_hearings in calendar_events.items %}
+                                <tr>
+                                    <td class="bg-light">
+                                        <strong>{{ date_str|date:"l" }}</strong><br>
+                                        <span class="text-muted">{{ date_str|date:"F d, Y" }}</span>
+                                    </td>
+                                    <td>
+                                        {% for hearing in day_hearings %}
+                                        <div class="card mb-2 {% if hearing.is_completed %}border-success{% else %}border-primary{% endif %}">
+                                            <div class="card-body py-2">
+                                                <div class="row">
+                                                    <div class="col-md-8">
+                                                        <h6 class="mb-1">
+                                                            <i class="fas fa-gavel text-warning"></i>
+                                                            {{ hearing.get_hearing_type_display }}
+                                                        </h6>
+                                                        <p class="mb-1 small">
+                                                            <strong>Case:</strong> 
+                                                            <a href="{% url 'courts:court_case_detail' hearing.court_case.pk %}">
+                                                                {{ hearing.court_case.case_number }}
+                                                            </a>
+                                                            - {{ hearing.court_case.case.client.get_full_name }}
+                                                        </p>
+                                                        <p class="mb-1 small">
+                                                            <strong>Court:</strong> {{ hearing.court_case.court.name }}
+                                                            | <strong>Judge:</strong> {{ hearing.judge.get_full_name }}
+                                                        </p>
+                                                        <p class="mb-0 small text-muted">
+                                                            <i class="fas fa-clock"></i> {{ hearing.hearing_date|date:"H:i" }}
+                                                            {% if hearing.location %}
+                                                            | <i class="fas fa-map-marker-alt"></i> {{ hearing.location }}
+                                                            {% endif %}
+                                                        </p>
+                                                    </div>
+                                                    <div class="col-md-4 text-right">
+                                                        <span class="badge badge-{% if hearing.is_completed %}success{% else %}warning{% endif %} mb-2">
+                                                            {% if hearing.is_completed %}Completed{% else %}Scheduled{% endif %}
+                                                        </span>
+                                                        <br>
+                                                        <a href="{% url 'courts:hearing_detail' hearing.pk %}" class="btn btn-sm btn-outline-primary">
+                                                            <i class="fas fa-eye"></i> Details
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                                {% if hearing.notes %}
+                                                <div class="mt-2">
+                                                    <small class="text-muted"><strong>Notes:</strong> {{ hearing.notes|truncatewords:20 }}</small>
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        {% endfor %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Hearings Scheduled</h4>
+                        <p class="text-muted">No court hearings are scheduled for the selected date range.</p>
+                        <a href="{% url 'courts:hearing_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Schedule First Hearing
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Hearings Summary -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Upcoming Hearings Summary</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 text-center">
+                            <div class="border rounded p-3">
+                                <h3 class="text-primary">{{ hearings.count }}</h3>
+                                <p class="mb-0">Total Hearings</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="border rounded p-3">
+                                <h3 class="text-warning">{{ hearings|length|add:"-1" }}</h3>
+                                <p class="mb-0">Upcoming</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="border rounded p-3">
+                                <h3 class="text-success">1</h3>
+                                <p class="mb-0">Completed</p>
+                            </div>
+                        </div>
+                        <div class="col-md-3 text-center">
+                            <div class="border rounded p-3">
+                                <h3 class="text-info">{{ courts.count }}</h3>
+                                <p class="mb-0">Courts</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Set default date range to next 30 days
+    const startDateField = document.getElementById('start_date');
+    const endDateField = document.getElementById('end_date');
+    
+    if (!startDateField.value) {
+        const today = new Date();
+        startDateField.value = today.toISOString().split('T')[0];
+    }
+    
+    if (!endDateField.value) {
+        const nextMonth = new Date();
+        nextMonth.setDate(nextMonth.getDate() + 30);
+        endDateField.value = nextMonth.toISOString().split('T')[0];
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Reporting & Analytics</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <button type="button" class="btn btn-sm btn-outline-secondary">Export</button>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Quick Reports -->
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-users me-2"></i>Client Reports
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Generate comprehensive reports on client demographics, status, and risk levels.</p>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <a href="{% url 'client_report' %}" class="text-decoration-none">
+                            <i class="fas fa-chart-bar me-2 text-primary"></i>Client Overview Report
+                        </a>
+                    </li>
+                    <li class="mb-2">
+                        <a href="{% url 'client_report_pdf' %}" class="text-decoration-none">
+                            <i class="fas fa-file-pdf me-2 text-danger"></i>Export to PDF
+                        </a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'client_report' %}" class="btn btn-primary w-100">Generate Report</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calendar me-2"></i>Appointment Reports
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Analyze appointment statistics, attendance rates, and scheduling patterns.</p>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-chart-line me-2 text-success"></i>Attendance Analytics
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-clock me-2 text-warning"></i>Scheduling Patterns
+                    </li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'appointment_report' %}" class="btn btn-success w-100">View Reports</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4 mb-4">
+        <div class="card h-100">
+            <div class="card-header bg-info text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-user-shield me-2"></i>Officer Reports
+                </h5>
+            </div>
+            <div class="card-body">
+                <p class="card-text">Monitor officer workload, performance metrics, and case management efficiency.</p>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-briefcase me-2 text-info"></i>Workload Distribution
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-tachometer-alt me-2 text-warning"></i>Performance Metrics
+                    </li>
+                </ul>
+            </div>
+            <div class="card-footer">
+                <a href="{% url 'officer_report' %}" class="btn btn-info w-100">View Reports</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AI Analysis Section -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header bg-warning">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-robot me-2"></i>AI Risk Analyzer
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-8">
+                        <h6>Advanced Case Analysis</h6>
+                        <p class="text-muted">
+                            Our AI analyzer evaluates client behavior patterns, appointment compliance, 
+                            and case progress to identify potential risks and provide actionable insights.
+                        </p>
+                        <ul class="list-unstyled">
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Behavioral pattern analysis
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Compliance risk assessment
+                            </li>
+                            <li class="mb-2">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                Progress trajectory prediction
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <div class="bg-light rounded p-4">
+                            <i class="fas fa-brain fa-3x text-warning mb-3"></i>
+                            <p class="mb-3">Access AI analysis from individual client pages</p>
+                            <a href="{% url 'client_list' %}" class="btn btn-warning">
+                                <i class="fas fa-users me-2"></i>View Clients
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Recent Activity -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Report Generation History</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted text-center py-4">
+                    <i class="fas fa-history fa-2x mb-3"></i><br>
+                    No recent report generations. Generate your first report to see history here.
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

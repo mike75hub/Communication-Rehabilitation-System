@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Delete Court: {{ court.name }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row justify-content-center">
+        <div class="col-lg-6">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">Confirm Deletion</h6>
+                </div>
+                <div class="card-body">
+                    <div class="text-center">
+                        <i class="fas fa-exclamation-triangle fa-3x text-warning mb-3"></i>
+                        <h4 class="text-gray-800 mb-4">Are you sure you want to delete this court?</h4>
+                    </div>
+                    
+                    <div class="alert alert-warning">
+                        <strong>Court: {{ court.name }}</strong><br>
+                        <strong>Type: {{ court.get_court_type_display }}</strong><br>
+                        <strong>Location: {{ court.address|truncatewords:10 }}</strong>
+                    </div>
+                    
+                    <div class="alert alert-danger">
+                        <strong>Warning:</strong> This action cannot be undone. The court will be marked as inactive but historical data will be preserved.
+                    </div>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="form-group text-center">
+                            <button type="submit" class="btn btn-danger">
+                                <i class="fas fa-trash"></i> Yes, Delete Court
+                            </button>
+                            <a href="{% url 'courts:court_detail' court.pk %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

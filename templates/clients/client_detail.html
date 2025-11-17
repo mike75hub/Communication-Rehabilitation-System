@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Client Details</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <div class="btn-group me-2">
+            <a href="{% url 'client_update' client.pk %}" class="btn btn-sm btn-outline-secondary">Edit</a>
+            <a href="{% url 'ai_analyzer' client.pk %}" class="btn btn-sm btn-outline-info">AI Analysis</a>
+            <a href="{% url 'client_list' %}" class="btn btn-sm btn-outline-primary">Back to List</a>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Stats -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="text-primary">{{ basic_analysis.total_appointments }}</h5>
+                <small class="text-muted">Total Appointments</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="text-success">{{ basic_analysis.completed_appointments }}</h5>
+                <small class="text-muted">Completed</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="text-info">{{ basic_analysis.completion_rate|floatformat:1 }}%</h5>
+                <small class="text-muted">Completion Rate</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h5 class="text-{{ basic_analysis.risk_indicator }}">
+                    <!-- Fixed the icon logic -->
+                    {% if basic_analysis.risk_indicator == 'danger' %}
+                        <i class="fas fa-exclamation-triangle"></i>
+                    {% elif basic_analysis.risk_indicator == 'warning' %}
+                        <i class="fas fa-exclamation-circle"></i>
+                    {% else %}
+                        <i class="fas fa-check-circle"></i>
+                    {% endif %}
+                </h5>
+                <small class="text-muted">Compliance Status</small>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Client Information -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Personal Information</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-borderless">
+                    <tr>
+                        <th width="30%">Case Number:</th>
+                        <td><strong>{{ client.case_number }}</strong></td>
+                    </tr>
+                    <tr>
+                        <th>Full Name:</th>
+                        <td>{{ client.first_name }} {{ client.last_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Date of Birth:</th>
+                        <td>{{ client.date_of_birth|date:"F d, Y" }}</td>
+                    </tr>
+                    <tr>
+                        <th>Gender:</th>
+                        <td>{{ client.get_gender_display }}</td>
+                    </tr>
+                    <tr>
+                        <th>Status:</th>
+                        <td>
+                            <span class="badge bg-{% if client.status == 'active' %}primary{% elif client.status == 'completed' %}success{% else %}danger{% endif %}">
+                                {{ client.get_status_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Risk Level:</th>
+                        <td>
+                            <span class="badge bg-{% if client.risk_level == 'low' %}success{% elif client.risk_level == 'medium' %}warning{% else %}danger{% endif %}">
+                                {{ client.get_risk_level_display }}
+                            </span>
+                        </td>
+                    </tr>
+                    <tr>
+                        <th>Assigned Officer:</th>
+                        <td>{{ client.assigned_officer.get_full_name }}</td>
+                    </tr>
+                    <tr>
+                        <th>Supervision Period:</th>
+                        <td>{{ client.start_date|date:"M d, Y" }} to {{ client.end_date|date:"M d, Y" }}</td>
+                    </tr>
+                </table>
+                
+                {% if client.notes %}
+                <div class="mt-3">
+                    <strong>Notes:</strong>
+                    <p class="mt-1">{{ client.notes }}</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Addresses -->
+    <div class="col-md-6">
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Addresses</h5>
+            </div>
+            <div class="card-body">
+                {% if addresses %}
+                    {% for address in addresses %}
+                    <div class="border-bottom pb-2 mb-2 {% if address.is_primary %}border-primary{% endif %}">
+                        <div class="d-flex justify-content-between">
+                            <strong>{{ address.get_address_type_display }}</strong>
+                            {% if address.is_primary %}
+                                <span class="badge bg-primary">Primary</span>
+                            {% endif %}
+                        </div>
+                        <p class="mb-1">{{ address.street }}</p>
+                        <p class="mb-1">{{ address.city }}, {{ address.state }} {{ address.zip_code }}</p>
+                    </div>
+                    {% endfor %}
+                {% else %}
+                    <p class="text-muted">No addresses recorded.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-grid gap-2">
+                    <a href="{% url 'ai_analyzer' client.pk %}" class="btn btn-info">
+                        <i class="fas fa-robot me-2"></i>AI Risk Analysis
+                    </a>
+                    <a href="{% url 'appointment_create' %}" class="btn btn-outline-primary">
+                        <i class="fas fa-calendar-plus me-2"></i>Schedule Appointment
+                    </a>
+                    <a href="{% url 'case_create' %}" class="btn btn-outline-success">
+                        <i class="fas fa-folder-plus me-2"></i>Create Case
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Offenses Section -->
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Offense History</h5>
+            </div>
+            <div class="card-body">
+                {% if offenses %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Offense Type</th>
+                                    <th>Description</th>
+                                    <th>Date Committed</th>
+                                    <th>Sentence</th>
+                                    <th>Court</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for offense in offenses %}
+                                <tr>
+                                    <td>{{ offense.offense_type }}</td>
+                                    <td>{{ offense.description|truncatewords:10 }}</td>
+                                    <td>{{ offense.date_committed|date:"M d, Y" }}</td>
+                                    <td>{{ offense.sentence }}</td>
+                                    <td>{{ offense.court }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">
+                        <i class="fas fa-gavel fa-2x mb-3"></i><br>
+                        No offense history recorded.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

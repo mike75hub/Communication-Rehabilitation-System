@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-10">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">{{ title }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            <h6 class="border-bottom pb-2">Personal Information</h6>
+                            {{ form.case_number|as_crispy_field }}
+                            {{ form.first_name|as_crispy_field }}
+                            {{ form.last_name|as_crispy_field }}
+                            {{ form.date_of_birth|as_crispy_field }}
+                            {{ form.gender|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            <h6 class="border-bottom pb-2">Case Information</h6>
+                            {{ form.assigned_officer|as_crispy_field }}
+                            <div class="alert alert-info">
+                                <small>
+                                    <i class="fas fa-info-circle"></i>
+                                    Only active probation officers are shown in this list.
+                                </small>
+                            </div>
+                            {{ form.status|as_crispy_field }}
+                            {{ form.risk_level|as_crispy_field }}
+                            {{ form.start_date|as_crispy_field }}
+                            {{ form.end_date|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            {{ form.notes|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-group mt-4">
+                        <button type="submit" class="btn btn-primary">Save Client</button>
+                        <a href="{% url 'client_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <!-- Available Officers Information -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-users me-2"></i>Available Probation Officers
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Department</th>
+                                <th>Badge Number</th>
+                                <th>Contact</th>
+                                <th>Current Caseload</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for officer in form.fields.assigned_officer.queryset %}
+                            <tr>
+                                <td>
+                                    <strong>{{ officer.get_full_name }}</strong>
+                                    {% if officer == user %}
+                                    <span class="badge bg-primary ms-1">You</span>
+                                    {% endif %}
+                                </td>
+                                <td>{{ officer.department }}</td>
+                                <td>{{ officer.badge_number }}</td>
+                                <td>{{ officer.phone|default:"Not provided" }}</td>
+                                <td>
+                                    <span class="badge 
+                                        {% if officer.client_set.count > 20 %}bg-danger
+                                        {% elif officer.client_set.count > 10 %}bg-warning
+                                        {% else %}bg-success{% endif %}">
+                                        {{ officer.client_set.count }} clients
+                                    </span>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted">
+                                    No active probation officers found.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

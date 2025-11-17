@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        Dashboard 
+        <small class="text-muted">- Welcome, {{ user.get_full_name }} ({{ user_role }})</small>
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        {% if user.can_add_clients %}
+        <div class="btn-group me-2">
+            <a href="{% url 'client_create' %}" class="btn btn-sm btn-primary">Add Client</a>
+            <a href="{% url 'appointment_create' %}" class="btn btn-sm btn-outline-primary">Schedule Appointment</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Role-based welcome message -->
+<div class="alert alert-info">
+    <i class="fas fa-user-shield me-2"></i>
+    <strong>Welcome, {{ user.get_full_name }}</strong> - 
+    You are logged in as a <strong>{{ user_role }}</strong>.
+    {% if user.can_add_clients %}
+    You can add new clients to the system 
+    {% endif %}
+</div>
+
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h5 class="card-title">Total Clients</h5>
+                <h2 class="text-primary">{{ total_clients|default:0 }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h5 class="card-title">Active Cases</h5>
+                <h2 class="text-primary">{{ active_cases|default:0 }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h5 class="card-title">Today's Appointments</h5>
+                <h2 class="text-primary">{{ todays_appointments|default:0 }}</h2>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card stat-card">
+            <div class="card-body">
+                <h5 class="card-title">Pending Tasks</h5>
+                <h2 class="text-primary">{{ pending_tasks|default:0 }}</h2>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Appointments</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_appointments %}
+                    <div class="list-group list-group-flush">
+                        {% for appointment in recent_appointments %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ appointment.client.full_name }}</h6>
+                                <small>{{ appointment.scheduled_date|date:"M d, Y H:i" }}</small>
+                            </div>
+                            <p class="mb-1">{{ appointment.get_appointment_type_display }}</p>
+                            <small class="text-muted">{{ appointment.location }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No upcoming appointments</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Notifications</h5>
+            </div>
+            <div class="card-body">
+                {% if recent_notifications %}
+                    <div class="list-group list-group-flush">
+                        {% for notification in recent_notifications %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ notification.title }}</h6>
+                                <small>{{ notification.created_at|timesince }} ago</small>
+                            </div>
+                            <p class="mb-1">{{ notification.message|truncatewords:10 }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted">No recent notifications</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

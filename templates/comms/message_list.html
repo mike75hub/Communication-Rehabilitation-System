@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Communications</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'message_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>New Message
+        </a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <!-- Navigation -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Communication Center</h5>
+            </div>
+            <div class="list-group list-group-flush">
+                <a href="{% url 'message_list' %}" class="list-group-item list-group-item-action active">
+                    <i class="fas fa-inbox me-2"></i>All Messages
+                    <span class="badge bg-primary float-end">{{ messages.count }}</span>
+                </a>
+                <a href="{% url 'notification_list' %}" class="list-group-item list-group-item-action">
+                    <i class="fas fa-bell me-2"></i>Notifications
+                    <span class="badge bg-warning float-end">{{ unread_count }}</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Quick Compose -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Compose</h5>
+            </div>
+            <div class="card-body">
+                <a href="{% url 'message_create' %}" class="btn btn-primary w-100">
+                    <i class="fas fa-edit me-2"></i>Compose Message
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Messages</h5>
+            </div>
+            <div class="card-body">
+                {% if messages %}
+                    <div class="list-group list-group-flush">
+                        {% for message in messages %}
+                        <div class="list-group-item {% if not message.read_at %}bg-light{% endif %}">
+                            <div class="d-flex w-100 justify-content-between">
+                                <div class="flex-grow-1">
+                                    <h6 class="mb-1">
+                                        {% if message.sender == request.user %}
+                                            <span class="badge bg-info me-2">Sent</span>
+                                            To: {{ message.recipient.get_full_name }}
+                                        {% else %}
+                                            From: {{ message.sender.get_full_name }}
+                                        {% endif %}
+                                        {% if message.is_urgent %}
+                                            <span class="badge bg-danger ms-2">URGENT</span>
+                                        {% endif %}
+                                    </h6>
+                                    <h5 class="mb-1">{{ message.subject }}</h5>
+                                    <p class="mb-1 text-muted">{{ message.body|truncatewords:20 }}</p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                       
+                                    </small>
+                                </div>
+                                <div class="text-end">
+                                    {% if not message.read_at and message.recipient == request.user %}
+                                        <span class="badge bg-warning">New</span>
+                                    {% endif %}
+                                    <div class="mt-2">
+                                        <a href="{% url 'message_detail' message.pk %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-envelope-open fa-3x text-muted mb-3"></i>
+                        <h5 class="text-muted">No Messages</h5>
+                        <p class="text-muted">You haven't sent or received any messages yet.</p>
+                        <a href="{% url 'message_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus me-2"></i>Send Your First Message
+                        </a>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

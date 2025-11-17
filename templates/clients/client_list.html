@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        Client Management
+        {% if user.user_type == 'officer' %}
+        <small class="text-muted">- My Assigned Clients</small>
+        {% endif %}
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        {% if user.can_add_clients %}
+        <a href="{% url 'client_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Add New Client
+        </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Role-based information -->
+{% if user.user_type == 'officer' %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    You are viewing only your assigned clients. As a probation officer, you can add new clients to the system.
+</div>
+{% elif user.user_type == 'staff' %}
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    You are viewing all clients. As support staff, you can add and manage clients.
+</div>
+{% endif %}
+
+<!-- Search and Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <input type="text" name="q" class="form-control" placeholder="Search clients..." value="{{ search_query }}">
+            </div>
+            <div class="col-md-3">
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Active</option>
+                    <option value="completed" {% if request.GET.status == 'completed' %}selected{% endif %}>Completed</option>
+                    <option value="violated" {% if request.GET.status == 'violated' %}selected{% endif %}>Violated</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="risk_level" class="form-select">
+                    <option value="">All Risk Levels</option>
+                    <option value="low" {% if request.GET.risk_level == 'low' %}selected{% endif %}>Low</option>
+                    <option value="medium" {% if request.GET.risk_level == 'medium' %}selected{% endif %}>Medium</option>
+                    <option value="high" {% if request.GET.risk_level == 'high' %}selected{% endif %}>High</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">Filter</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Clients Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            Clients ({{ clients.count }})
+            {% if user.user_type == 'officer' %}
+            <small class="text-muted">- Assigned to you</small>
+            {% endif %}
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Case Number</th>
+                        <th>Name</th>
+                        <th>Assigned Officer</th>
+                        <th>Status</th>
+                        <th>Risk Level</th>
+                        <th>Start Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for client in clients %}
+                    <tr>
+                        <td><strong>{{ client.case_number }}</strong></td>
+                        <td>
+                            <a href="{% url 'client_detail' client.pk %}">
+                                {{ client.first_name }} {{ client.last_name }}
+                            </a>
+                        </td>
+                        <td>{{ client.assigned_officer.get_full_name }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if client.status == 'active' %}bg-primary
+                                {% elif client.status == 'completed' %}bg-success
+                                {% elif client.status == 'violated' %}bg-danger
+                                {% else %}bg-secondary{% endif %}">
+                                {{ client.get_status_display }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if client.risk_level == 'low' %}bg-success
+                                {% elif client.risk_level == 'medium' %}bg-warning
+                                {% elif client.risk_level == 'high' %}bg-danger
+                                {% else %}bg-secondary{% endif %}">
+                                {{ client.get_risk_level_display }}
+                            </span>
+                        </td>
+                        <td>{{ client.start_date|date:"M d, Y" }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'client_detail' client.pk %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if user.user_type in 'admin staff' or client.assigned_officer == user %}
+                                <a href="{% url 'client_update' client.pk %}" class="btn btn-outline-secondary">
+                                    <i class="fas fa-edit"></i>
+                                </a>
+                                {% endif %}
+                                <a href="{% url 'ai_analyzer' client.pk %}" class="btn btn-outline-info" title="AI Analysis">
+                                    <i class="fas fa-robot"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            <i class="fas fa-users fa-2x mb-3"></i><br>
+                            {% if user.user_type == 'officer' %}
+                            No clients assigned to you. 
+                            {% if user.can_add_clients %}
+                            <a href="{% url 'client_create' %}">Add your first client</a>.
+                            {% endif %}
+                            {% else %}
+                            No clients found. 
+                            {% if user.can_add_clients %}
+                            <a href="{% url 'client_create' %}">Add your first client</a>.
+                            {% endif %}
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

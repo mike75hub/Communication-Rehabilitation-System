@@ -1,0 +1,224 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-list me-2"></i>My Cases
+        <small class="text-muted">- Presiding Cases</small>
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'judges:judge_dashboard' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" class="row g-3">
+            <div class="col-md-4">
+                <select name="status" class="form-select">
+                    <option value="">All Statuses</option>
+                    <option value="open" {% if status_filter == 'open' %}selected{% endif %}>Open</option>
+                    <option value="closed" {% if status_filter == 'closed' %}selected{% endif %}>Closed</option>
+                    <option value="sentenced" {% if status_filter == 'sentenced' %}selected{% endif %}>Sentenced</option>
+                    <option value="pending" {% if status_filter == 'pending' %}selected{% endif %}>Pending Review</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <select name="court_type" class="form-select">
+                    <option value="">All Court Types</option>
+                    <option value="circuit" {% if court_filter == 'circuit' %}selected{% endif %}>Circuit Court</option>
+                    <option value="family" {% if court_filter == 'family' %}selected{% endif %}>Family Court</option>
+                    <option value="drug" {% if court_filter == 'drug' %}selected{% endif %}>Drug Court</option>
+                    <option value="juvenile" {% if court_filter == 'juvenile' %}selected{% endif %}>Juvenile Court</option>
+                    <option value="high" {% if court_filter == 'high' %}selected{% endif %}>High Court</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <button type="submit" class="btn btn-primary w-100">Filter Cases</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Cases Table -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">
+            Presiding Cases ({{ cases.count }})
+            {% if status_filter %}
+            <small class="text-muted">- Filtered by: {{ status_filter|title }}</small>
+            {% endif %}
+        </h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Case Number</th>
+                        <th>Client</th>
+                        <th>Probation Officer</th>
+                        <th>Court Type</th>
+                        <th>Status</th>
+                        <th>Opening Date</th>
+                        <th>Next Court Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for case in cases %}
+                    <tr>
+                        <td><strong>{{ case.case_number }}</strong></td>
+                        <td>
+                            <a href="{% url 'judges:judge_case_detail' case.pk %}">
+                                {{ case.client.full_name }}
+                            </a>
+                            {% if case.is_high_profile %}
+                            <span class="badge bg-danger ms-1">High Profile</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ case.officer.get_full_name }}</td>
+                        <td>{{ case.get_court_type_display }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if case.status == 'open' %}bg-primary
+                                {% elif case.status == 'closed' %}bg-success
+                                {% elif case.status == 'sentenced' %}bg-info
+                                {% else %}bg-warning{% endif %}">
+                                {{ case.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ case.opening_date|date:"M d, Y" }}</td>
+                        <td>
+                            {% if case.next_court_date %}
+                                {{ case.next_court_date|date:"M d, Y" }}
+                                {% if case.days_until_court %}
+                                    <br><small class="text-{% if case.days_until_court < 7 %}danger{% elif case.days_until_court < 30 %}warning{% else %}success{% endif %}">
+                                        ({{ case.days_until_court }} day{{ case.days_until_court|pluralize }})
+                                    </small>
+                                {% endif %}
+                            {% else %}
+                                <span class="text-muted">Not scheduled</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'judges:judge_case_detail' case.pk %}" class="btn btn-outline-primary" title="View Details">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-info" title="Update Sentencing" onclick="openSentencingModal({{ case.id }})">
+                                    <i class="fas fa-gavel"></i>
+                                </a>
+                                <a href="#" class="btn btn-outline-warning" title="Schedule Hearing">
+                                    <i class="fas fa-calendar-plus"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center text-muted py-4">
+                            <i class="fas fa-folder-open fa-2x mb-3"></i><br>
+                            No cases found matching your criteria.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Sentencing Modal -->
+<div class="modal fade" id="sentencingModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Update Sentencing</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="sentencingForm">
+                    {% csrf_token %}
+                    <input type="hidden" id="caseId" name="case_id">
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Sentencing Date</label>
+                                <input type="date" class="form-control" id="sentencingDate" name="sentencing_date" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Case Status</label>
+                                <select class="form-select" id="caseStatus" name="case_status" required>
+                                    <option value="open">Open</option>
+                                    <option value="sentenced">Sentenced</option>
+                                    <option value="closed">Closed</option>
+                                    <option value="pending">Pending Review</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Sentencing Details</label>
+                        <textarea class="form-control" id="sentencingDetails" name="sentencing_details" rows="4" placeholder="Enter sentencing details, conditions, and recommendations..."></textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label class="form-label">Special Conditions</label>
+                        <textarea class="form-control" id="specialConditions" name="special_conditions" rows="3" placeholder="Any special conditions or requirements..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="submitSentencing()">Update Sentencing</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function openSentencingModal(caseId) {
+    document.getElementById('caseId').value = caseId;
+    document.getElementById('sentencingDate').value = new Date().toISOString().split('T')[0];
+    document.getElementById('caseStatus').value = 'sentenced';
+    
+    var sentencingModal = new bootstrap.Modal(document.getElementById('sentencingModal'));
+    sentencingModal.show();
+}
+
+function submitSentencing() {
+    const form = document.getElementById('sentencingForm');
+    const formData = new FormData(form);
+    
+    fetch('{% url "judges:update_sentencing" %}', {
+        method: 'POST',
+        body: formData,
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            bootstrap.Modal.getInstance(document.getElementById('sentencingModal')).hide();
+            location.reload();
+        } else {
+            alert('Error updating sentencing: ' + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error updating sentencing');
+    });
+}
+</script>
+{% endblock %}

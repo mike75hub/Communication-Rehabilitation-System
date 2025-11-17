@@ -1,0 +1,215 @@
+{% extends 'base.html' %}
+
+
+{% block title %}Court System Dashboard{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <h1 class="h3 mb-4 text-gray-800">Court System Dashboard</h1>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Total Courts</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_courts }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-balance-scale fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Active Judges</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_judges }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-gavel fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-info shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                                Court Cases</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_court_cases }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-folder fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Upcoming Hearings</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">{{ upcoming_hearings }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-calendar-alt fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Today's Hearings -->
+    <div class="row">
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Today's Hearings</h6>
+                    <a href="{% url 'courts:hearing_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if todays_hearings %}
+                    <div class="list-group list-group-flush">
+                        {% for hearing in todays_hearings %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ hearing.get_hearing_type_display }}</h6>
+                                <p class="mb-1 small text-muted">
+                                    <strong>Case:</strong> {{ hearing.court_case.case_number }}<br>
+                                    <strong>Client:</strong> {{ hearing.court_case.case.client.get_full_name }}<br>
+                                    <strong>Judge:</strong> {{ hearing.judge.get_full_name }}
+                                </p>
+                                <small class="text-muted">
+                                    <i class="fas fa-clock"></i> {{ hearing.hearing_date|date:"H:i" }}
+                                    | {{ hearing.court_case.court.name }}
+                                </small>
+                            </div>
+                            <span class="badge badge-{% if hearing.is_completed %}success{% else %}warning{% endif %}">
+                                {% if hearing.is_completed %}Completed{% else %}Upcoming{% endif %}
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-3">No hearings scheduled for today.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow">
+                <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="m-0 font-weight-bold text-primary">Recent Court Orders</h6>
+                    <a href="{% url 'courts:court_order_list' %}" class="btn btn-sm btn-outline-primary">View All</a>
+                </div>
+                <div class="card-body">
+                    {% if recent_orders %}
+                    <div class="list-group list-group-flush">
+                        {% for order in recent_orders %}
+                        <div class="list-group-item">
+                            <h6 class="mb-1">{{ order.get_order_type_display }}</h6>
+                            <p class="mb-1 small text-muted">
+                                <strong>Case:</strong> {{ order.court_case.case_number }}<br>
+                                <strong>Judge:</strong> {{ order.judge.get_full_name }}
+                            </p>
+                            <small class="text-muted">
+                                <i class="fas fa-calendar"></i> {{ order.order_date|date:"M d, Y" }}
+                            </small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-3">No recent court orders found.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Actions</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'courts:court_list' %}" class="btn btn-primary btn-block">
+                                <i class="fas fa-balance-scale"></i> View Courts
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'courts:court_case_list' %}" class="btn btn-success btn-block">
+                                <i class="fas fa-folder-open"></i> Court Cases
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'courts:hearing_list' %}" class="btn btn-info btn-block">
+                                <i class="fas fa-calendar-check"></i> Hearings
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'courts:court_calendar_overview' %}" class="btn btn-warning btn-block">
+                                <i class="fas fa-calendar-alt"></i> Court Calendar
+                            </a>
+                        </div>
+                    </div>
+                    {% if user.is_staff %}
+                    <hr>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'courts:court_create' %}" class="btn btn-outline-primary btn-block">
+                                <i class="fas fa-plus"></i> Add Court
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'courts:court_case_create' %}" class="btn btn-outline-success btn-block">
+                                <i class="fas fa-folder-plus"></i> Create Case
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'courts:hearing_create' %}" class="btn btn-outline-info btn-block">
+                                <i class="fas fa-calendar-plus"></i> Schedule Hearing
+                            </a>
+                        </div>
+                        <div class="col-md-3 mb-3">
+                            <a href="{% url 'courts:court_order_create' %}" class="btn btn-outline-warning btn-block">
+                                <i class="fas fa-file-contract"></i> Create Order
+                            </a>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

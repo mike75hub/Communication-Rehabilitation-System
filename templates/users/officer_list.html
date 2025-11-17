@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load humanize %}
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Probation Officers</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'client_list' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Clients
+        </a>
+    </div>
+</div>
+
+<div class="alert alert-info">
+    <i class="fas fa-info-circle me-2"></i>
+    This page shows all active probation officers in the system. You can assign clients to any of these officers.
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Active Probation Officers ({{ officers.count }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Officer</th>
+                        <th>Department</th>
+                        <th>Badge Number</th>
+                        <th>Contact</th>
+                        <th>Current Caseload</th>
+                        <th>Workload</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for officer in officers %}
+                    <tr>
+                        <td>
+                            <strong>{{ officer.get_full_name }}</strong>
+                            {% if officer == user %}
+                            <span class="badge bg-primary ms-1">You</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ officer.department }}</td>
+                        <td>{{ officer.badge_number }}</td>
+                        <td>
+                            {% if officer.phone %}
+                            <i class="fas fa-phone me-1"></i>{{ officer.phone }}
+                            {% endif %}
+                            {% if officer.email %}
+                            <br><i class="fas fa-envelope me-1"></i>{{ officer.email }}
+                            {% endif %}
+                        </td>
+                        <td>
+                            <span class="badge 
+                                {% if officer.caseload_count > 20 %}bg-danger
+                                {% elif officer.caseload_count > 10 %}bg-warning
+                                {% else %}bg-success{% endif %}">
+                                {{ officer.caseload_count }} client{{ officer.caseload_count|pluralize }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if officer.caseload_count > 20 %}
+                            <span class="text-danger">Heavy</span>
+                            {% elif officer.caseload_count > 10 %}
+                            <span class="text-warning">Moderate</span>
+                            {% else %}
+                            <span class="text-success">Light</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="fas fa-users fa-2x mb-3"></i><br>
+                            No active probation officers found.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

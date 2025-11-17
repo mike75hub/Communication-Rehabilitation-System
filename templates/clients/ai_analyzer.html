@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-robot me-2"></i>AI Risk Analysis
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'client_detail' client.pk %}" class="btn btn-outline-secondary me-2">
+            <i class="fas fa-arrow-left me-2"></i>Back to Client
+        </a>
+        <button class="btn btn-primary" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>Print Report
+        </button>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Client Summary -->
+    <div class="col-md-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Client Information</h5>
+            </div>
+            <div class="card-body">
+                <h6>{{ client.full_name }}</h6>
+                <p class="mb-1"><strong>Case Number:</strong> {{ client.case_number }}</p>
+                <p class="mb-1"><strong>Assigned Officer:</strong> {{ client.assigned_officer.get_full_name }}</p>
+                <p class="mb-1"><strong>Status:</strong> 
+                    <span class="badge bg-{% if client.status == 'active' %}primary{% elif client.status == 'completed' %}success{% else %}danger{% endif %}">
+                        {{ client.get_status_display }}
+                    </span>
+                </p>
+                <p class="mb-0"><strong>Original Risk Level:</strong> 
+                    <span class="badge bg-{% if client.risk_level == 'low' %}success{% elif client.risk_level == 'medium' %}warning{% else %}danger{% endif %}">
+                        {{ client.get_risk_level_display }}
+                    </span>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Risk Assessment -->
+    <div class="col-md-8 mb-4">
+        <div class="card">
+            <div class="card-header bg-{{ analysis.alert_level }} text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>AI Risk Assessment
+                </h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-6">
+                        <h3 class="text-{{ analysis.alert_level }}">{{ analysis.risk_score }}/100</h3>
+                        <p class="mb-0">Overall Risk Score</p>
+                    </div>
+                    <div class="col-md-6">
+                        <h3>
+                            <span class="badge bg-{{ analysis.alert_level }} fs-6">
+                                {{ analysis.risk_category }}
+                            </span>
+                        </h3>
+                        <p class="mb-0">Risk Category</p>
+                    </div>
+                </div>
+                
+                <!-- Progress Bar -->
+                <div class="progress mt-4" style="height: 20px;">
+                    <div class="progress-bar bg-{{ analysis.alert_level }}" 
+                         role="progressbar" 
+                         style="width: {{ analysis.risk_score }}%"
+                         aria-valuenow="{{ analysis.risk_score }}" 
+                         aria-valuemin="0" 
+                         aria-valuemax="100">
+                        {{ analysis.risk_score }}%
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Key Metrics -->
+<div class="row">
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ analysis.total_appointments }}</h3>
+                <p class="mb-0">Total Appointments</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">{{ analysis.completed_appointments }}</h3>
+                <p class="mb-0">Completed</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-danger">{{ analysis.missed_appointments }}</h3>
+                <p class="mb-0">Missed</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-info">{{ analysis.completion_rate|floatformat:1 }}%</h3>
+                <p class="mb-0">Completion Rate</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Risk Factors -->
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-exclamation-circle me-2"></i>Identified Risk Factors
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if analysis.risk_factors %}
+                    <div class="list-group">
+                        {% for factor in analysis.risk_factors %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ factor.factor }}</h6>
+                                <span class="badge bg-{% if factor.severity == 'high' %}danger{% else %}warning{% endif %}">
+                                    {{ factor.severity|title }}
+                                </span>
+                            </div>
+                            <p class="mb-1 text-muted">{{ factor.description }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">
+                        <i class="fas fa-check-circle fa-2x text-success mb-3"></i><br>
+                        No significant risk factors identified.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Recommendations -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-success text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-lightbulb me-2"></i>AI Recommendations
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if analysis.recommendations %}
+                    <div class="list-group">
+                        {% for recommendation in analysis.recommendations %}
+                        <div class="list-group-item">
+                            <i class="fas fa-arrow-right text-success me-2"></i>
+                            {{ recommendation }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">
+                        <i class="fas fa-thumbs-up fa-2x text-success mb-3"></i><br>
+                        Current management approach appears effective.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Analysis Details -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Analysis Details</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Data Sources Analyzed:</h6>
+                        <ul>
+                            <li>Appointment history and compliance</li>
+                            <li>Case progress and status</li>
+                            <li>Offense history patterns</li>
+                            <li>Behavioral trends</li>
+                            <li>Risk level assessment</li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Analysis Information:</h6>
+                        <p class="mb-1"><strong>Analysis Date:</strong> {{ analysis.analysis_date|date:"F d, Y g:i A" }}</p>
+                        <p class="mb-1"><strong>Analyzed by:</strong> AI Risk Assessment System</p>
+                        <p class="mb-1"><strong>Confidence Level:</strong> High (Based on comprehensive data analysis)</p>
+                        <p class="mb-0"><strong>Data Points:</strong> 
+                            {{ analysis.total_appointments }} appointments, 
+                            {{ cases.count }} cases, 
+                            {{ offenses.count }} offenses
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Client Data Overview -->
+<div class="row mt-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Recent Appointments</h5>
+            </div>
+            <div class="card-body">
+                {% if appointments %}
+                    <div class="list-group list-group-flush">
+                        {% for appointment in appointments|slice:":5" %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ appointment.get_appointment_type_display }}</h6>
+                                <small>{{ appointment.scheduled_date|date:"M d, Y" }}</small>
+                            </div>
+                            <p class="mb-1 text-muted">Status: 
+                                <span class="badge bg-{% if appointment.status == 'completed' %}success{% elif appointment.status == 'scheduled' %}primary{% else %}warning{% endif %}">
+                                    {{ appointment.get_status_display }}
+                                </span>
+                            </p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% if appointments.count > 5 %}
+                    <div class="text-center mt-2">
+                        <small class="text-muted">... and {{ appointments.count|add:"-5" }} more appointments</small>
+                    </div>
+                    {% endif %}
+                {% else %}
+                    <p class="text-muted text-center py-3">No appointment history</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Case History</h5>
+            </div>
+            <div class="card-body">
+                {% if cases %}
+                    <div class="list-group list-group-flush">
+                        {% for case in cases %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">Case #{{ case.id }}</h6>
+                                <span class="badge bg-{% if case.status == 'open' %}primary{% elif case.status == 'closed' %}success{% else %}warning{% endif %}">
+                                    {{ case.get_status_display }}
+                                </span>
+                            </div>
+                            <p class="mb-1 text-muted">{{ case.objectives|truncatewords:10 }}</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">No case history</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h6><i class="fas fa-info-circle me-2"></i>Important Note</h6>
+            <p class="mb-0">
+                This AI analysis is based on available data and should be used as a decision support tool. 
+                Always combine these insights with professional judgment and direct client interaction.
+                The analysis is automatically generated and should be reviewed by qualified personnel.
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+@media print {
+    .btn, .alert-info {
+        display: none !important;
+    }
+    .card {
+        border: 1px solid #000 !important;
+        break-inside: avoid;
+    }
+}
+</style>
+{% endblock %}

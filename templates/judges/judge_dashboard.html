@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-gavel me-2"></i>Judicial Dashboard
+        <small class="text-muted">- Welcome, Honorable {{ user.get_full_name }}</small>
+    </h1>
+</div>
+
+<!-- Role-based welcome message -->
+<div class="alert alert-warning">
+    <i class="fas fa-gavel me-2"></i>
+    <strong>Judicial Portal</strong> - You are logged in as a Judge. 
+    This dashboard provides access to court cases, calendars, and judicial reviews.
+</div>
+
+<!-- Statistics Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ total_cases }}</h3>
+                <p class="mb-0">Total Cases</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-warning">{{ open_cases }}</h3>
+                <p class="mb-0">Open Cases</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">{{ sentenced_cases }}</h3>
+                <p class="mb-0">Sentenced</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-info">{{ review_cases.count }}</h3>
+                <p class="mb-0">Pending Reviews</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Upcoming Court Dates -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-primary text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-calendar-day me-2"></i>Upcoming Court Dates
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if upcoming_court_dates %}
+                    <div class="list-group list-group-flush">
+                        {% for case in upcoming_court_dates %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ case.client.full_name }}</h6>
+                                <small>{{ case.next_court_date|date:"M d, Y" }}</small>
+                            </div>
+                            <p class="mb-1">{{ case.case_number }}</p>
+                            <small class="text-muted">{{ case.get_court_type_display }} Court</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <div class="mt-3 text-center">
+                        <a href="{% url 'judges:court_calendar' %}" class="btn btn-sm btn-outline-primary">View Full Calendar</a>
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">
+                        <i class="fas fa-calendar-times fa-2x mb-3"></i><br>
+                        No upcoming court dates.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- High-Profile Cases -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header bg-danger text-white">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-exclamation-triangle me-2"></i>High-Profile Cases
+                </h5>
+            </div>
+            <div class="card-body">
+                {% if high_profile_cases %}
+                    <div class="list-group list-group-flush">
+                        {% for case in high_profile_cases %}
+                        <div class="list-group-item">
+                            <div class="d-flex w-100 justify-content-between">
+                                <h6 class="mb-1">{{ case.client.full_name }}</h6>
+                                <span class="badge bg-danger">High Profile</span>
+                            </div>
+                            <p class="mb-1">{{ case.case_number }}</p>
+                            <small class="text-muted">Status: {{ case.get_status_display }}</small>
+                        </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <p class="text-muted text-center py-3">
+                        <i class="fas fa-check-circle fa-2x text-success mb-3"></i><br>
+                        No high-profile cases.
+                    </p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Quick Actions</h5>
+            </div>
+            <div class="card-body">
+                <div class="row text-center">
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'judges:judge_cases' %}" class="btn btn-outline-primary w-100 py-3">
+                            <i class="fas fa-list fa-2x mb-2"></i><br>
+                            My Cases
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'judges:court_calendar' %}" class="btn btn-outline-success w-100 py-3">
+                            <i class="fas fa-calendar-alt fa-2x mb-2"></i><br>
+                            Court Calendar
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="{% url 'judges:judicial_reviews' %}" class="btn btn-outline-warning w-100 py-3">
+                            <i class="fas fa-clipboard-check fa-2x mb-2"></i><br>
+                            Judicial Reviews
+                        </a>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <a href="#" class="btn btn-outline-info w-100 py-3">
+                            <i class="fas fa-file-contract fa-2x mb-2"></i><br>
+                            Sentencing
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

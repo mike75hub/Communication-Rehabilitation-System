@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-gray-800">{{ title }}</h1>
+                <a href="{% url 'courts:court_list' %}" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> Back to Courts
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Court Information</h6>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        {{ form|crispy }}
+                        <div class="form-group mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> {{ submit_text }}
+                            </button>
+                            <a href="{% url 'courts:court_list' %}" class="btn btn-secondary">Cancel</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="card shadow">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Quick Help</h6>
+                </div>
+                <div class="card-body">
+                    <h6>Court Types:</h6>
+                    <ul class="small">
+                        <li><strong>Superior Court:</strong> General jurisdiction court</li>
+                        <li><strong>District Court:</strong> Limited jurisdiction court</li>
+                        <li><strong>Juvenile Court:</strong> Handles cases involving minors</li>
+                        <li><strong>Drug Court:</strong> Specialized for drug-related cases</li>
+                        <li><strong>Federal Court:</strong> Federal jurisdiction cases</li>
+                    </ul>
+                    <h6>Required Information:</h6>
+                    <ul class="small">
+                        <li>Court name must be unique</li>
+                        <li>Address helps with location identification</li>
+                        <li>Court clerk information for contact purposes</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

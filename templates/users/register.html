@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">Register for CRPMS</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <fieldset class="form-group">
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.username|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.email|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.first_name|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.last_name|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.user_type|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.department|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.phone|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.badge_number|as_crispy_field }}
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.password1|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.password2|as_crispy_field }}
+                            </div>
+                        </div>
+                    </fieldset>
+                    <div class="form-group mt-3">
+                        <button class="btn btn-primary w-100" type="submit">Sign Up</button>
+                    </div>
+                </form>
+                <div class="border-top pt-3 mt-3">
+                    <small class="text-muted">
+                        Already Have An Account? <a class="ml-2" href="{% url 'login' %}">Sign In</a>
+                    </small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

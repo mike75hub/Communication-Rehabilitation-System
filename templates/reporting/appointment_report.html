@@ -1,0 +1,169 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Appointment Reports</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <button class="btn btn-sm btn-outline-secondary" onclick="window.print()">
+            <i class="fas fa-print me-2"></i>Print Report
+        </button>
+    </div>
+</div>
+
+<!-- Summary Cards -->
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-primary">{{ appointments.count }}</h3>
+                <p class="mb-0">Total Appointments</p>
+                <small class="text-muted">{{ period }}</small>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">{{ completed_count }}</h3>
+                <p class="mb-0">Completed</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-warning">{{ scheduled_count }}</h3>
+                <p class="mb-0">Scheduled</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-danger">{{ missed_count }}</h3>
+                <p class="mb-0">Missed</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Appointment Type Breakdown -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Appointment Type Breakdown</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Count</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for type in type_breakdown %}
+                        <tr>
+                            <td>{{ type.appointment_type|title }}</td>
+                            <td>{{ type.count }}</td>
+                            <td>{{ type.percentage|floatformat:1 }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Status Breakdown -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Status Breakdown</h5>
+            </div>
+            <div class="card-body">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Status</th>
+                            <th>Count</th>
+                            <th>Percentage</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for status in status_breakdown %}
+                        <tr>
+                            <td>
+                                <span class="badge 
+                                    {% if status.status == 'completed' %}bg-success
+                                    {% elif status.status == 'scheduled' %}bg-primary
+                                    {% elif status.status == 'cancelled' %}bg-secondary
+                                    {% else %}bg-warning{% endif %}">
+                                    {{ status.status|title }}
+                                </span>
+                            </td>
+                            <td>{{ status.count }}</td>
+                            <td>{{ status.percentage|floatformat:1 }}%</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Appointment List -->
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Appointment Details - {{ period }}</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Date & Time</th>
+                        <th>Client</th>
+                        <th>Officer</th>
+                        <th>Type</th>
+                        <th>Location</th>
+                        <th>Status</th>
+                        <th>Duration</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for appointment in appointments %}
+                    <tr>
+                        <td>{{ appointment.scheduled_date|date:"M d, Y H:i" }}</td>
+                        <td>{{ appointment.client.full_name }}</td>
+                        <td>{{ appointment.officer.get_full_name }}</td>
+                        <td>{{ appointment.get_appointment_type_display }}</td>
+                        <td>{{ appointment.location }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if appointment.status == 'completed' %}bg-success
+                                {% elif appointment.status == 'scheduled' %}bg-primary
+                                {% elif appointment.status == 'cancelled' %}bg-secondary
+                                {% else %}bg-warning{% endif %}">
+                                {{ appointment.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ appointment.duration_minutes }} min</td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">
+                            No appointments found for the selected period.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

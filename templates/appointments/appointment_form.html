@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">{{ title }}</h4>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    {% csrf_token %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            {{ form.client|as_crispy_field }}
+                            {{ form.appointment_type|as_crispy_field }}
+                            {{ form.scheduled_date|as_crispy_field }}
+                        </div>
+                        <div class="col-md-6">
+                            {{ form.duration_minutes|as_crispy_field }}
+                            {{ form.location|as_crispy_field }}
+                            {{ form.status|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="row mt-3">
+                        <div class="col-12">
+                            {{ form.notes|as_crispy_field }}
+                        </div>
+                    </div>
+                    <div class="form-group mt-4">
+                        <button type="submit" class="btn btn-primary">Save Appointment</button>
+                        <a href="{% url 'appointment_list' %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Set default datetime to current time rounded to nearest 15 minutes
+    document.addEventListener('DOMContentLoaded', function() {
+        const datetimeField = document.querySelector('#id_scheduled_date');
+        if (datetimeField && !datetimeField.value) {
+            const now = new Date();
+            const minutes = Math.ceil(now.getMinutes() / 15) * 15;
+            now.setMinutes(minutes);
+            now.setSeconds(0);
+            now.setMilliseconds(0);
+            
+            // Format for datetime-local input
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutesStr = String(now.getMinutes()).padStart(2, '0');
+            
+            datetimeField.value = `${year}-${month}-${day}T${hours}:${minutesStr}`;
+        }
+    });
+</script>
+{% endblock %}

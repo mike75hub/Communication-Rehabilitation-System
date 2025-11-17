@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+
+{% block title %}Court Hearings{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h1 class="h3 mb-0 text-gray-800">Court Hearings</h1>
+                {% if user.is_staff %}
+                <a href="{% url 'courts:hearing_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Schedule Hearing
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    <form method="get" class="form-inline">
+                        <div class="form-group mr-3">
+                            <label for="court" class="mr-2">Court:</label>
+                            <select name="court" id="court" class="form-control">
+                                <option value="">All Courts</option>
+                                {% for court in courts %}
+                                <option value="{{ court.id }}" {% if court_filter == court.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ court.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group mr-3">
+                            <label for="judge" class="mr-2">Judge:</label>
+                            <select name="judge" id="judge" class="form-control">
+                                <option value="">All Judges</option>
+                                {% for judge in judges %}
+                                <option value="{{ judge.id }}" {% if judge_filter == judge.id|stringformat:"i" %}selected{% endif %}>
+                                    {{ judge.get_full_name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="form-group mr-3">
+                            <label for="completed" class="mr-2">Status:</label>
+                            <select name="completed" id="completed" class="form-control">
+                                <option value="">All Statuses</option>
+                                <option value="false" {% if completed_filter == 'false' %}selected{% endif %}>Upcoming</option>
+                                <option value="true" {% if completed_filter == 'true' %}selected{% endif %}>Completed</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary mr-2">Filter</button>
+                        <a href="{% url 'courts:hearing_list' %}" class="btn btn-outline-secondary">Clear</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hearings Table -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow">
+                <div class="card-body">
+                    {% if hearings %}
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead class="thead-light">
+                                <tr>
+                                    <th>Date & Time</th>
+                                    <th>Type</th>
+                                    <th>Case</th>
+                                    <th>Client</th>
+                                    <th>Court</th>
+                                    <th>Judge</th>
+                                    <th>Location</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for hearing in hearings %}
+                                <tr>
+                                    <td>
+                                        <strong>{{ hearing.hearing_date|date:"M d, Y" }}</strong><br>
+                                        <small class="text-muted">{{ hearing.hearing_date|date:"H:i" }}</small>
+                                    </td>
+                                    <td>{{ hearing.get_hearing_type_display }}</td>
+                                    <td>
+                                        <a href="{% url 'courts:court_case_detail' hearing.court_case.pk %}">
+                                            {{ hearing.court_case.case_number }}
+                                        </a>
+                                    </td>
+                                    <td>{{ hearing.court_case.case.client.get_full_name }}</td>
+                                    <td>{{ hearing.court_case.court.name }}</td>
+                                    <td>{{ hearing.judge.get_full_name }}</td>
+                                    <td>{{ hearing.location|default:"-" }}</td>
+                                    <td>
+                                        <span class="badge badge-{% if hearing.is_completed %}success{% else %}warning{% endif %}">
+                                            {% if hearing.is_completed %}Completed{% else %}Upcoming{% endif %}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <div class="btn-group btn-group-sm">
+                                            <a href="{% url 'courts:hearing_detail' hearing.pk %}" class="btn btn-outline-primary" title="View">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            {% if user.is_staff %}
+                                            <a href="{% url 'courts:hearing_edit' hearing.pk %}" class="btn btn-outline-secondary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            {% endif %}
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-calendar-times fa-3x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Hearings Found</h4>
+                        <p class="text-muted">No hearings match your search criteria.</p>
+                        {% if user.is_staff %}
+                        <a href="{% url 'courts:hearing_create' %}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Schedule First Hearing
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

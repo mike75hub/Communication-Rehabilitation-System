@@ -1,0 +1,203 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">
+        <i class="fas fa-clipboard-check me-2"></i>Judicial Reviews
+        <small class="text-muted">- Pending Reviews</small>
+    </h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'judges:judge_dashboard' %}" class="btn btn-outline-primary">
+            <i class="fas fa-arrow-left me-2"></i>Back to Dashboard
+        </a>
+    </div>
+</div>
+
+<!-- Pending Reviews -->
+<div class="card">
+    <div class="card-header bg-warning text-dark">
+        <h5 class="card-title mb-0">
+            <i class="fas fa-exclamation-circle me-2"></i>Cases Requiring Judicial Review
+            <span class="badge bg-dark float-end">{{ review_cases.count }}</span>
+        </h5>
+    </div>
+    <div class="card-body">
+        {% if review_cases %}
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Case Number</th>
+                            <th>Client</th>
+                            <th>Probation Officer</th>
+                            <th>Last Review</th>
+                            <th>Progress</th>
+                            <th>Review Type</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for case in review_cases %}
+                        <tr>
+                            <td><strong>{{ case.case_number }}</strong></td>
+                            <td>{{ case.client.full_name }}</td>
+                            <td>{{ case.officer.get_full_name }}</td>
+                            <td>
+                                {% with last_plan=case.rehabilitation_plans.first %}
+                                    {% if last_plan %}
+                                        {{ last_plan.start_date|date:"M d, Y" }}
+                                    {% else %}
+                                        <span class="text-muted">No plan</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                {% with last_plan=case.rehabilitation_plans.first %}
+                                    {% if last_plan %}
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar 
+                                                {% if last_plan.progress_percentage < 50 %}bg-danger
+                                                {% elif last_plan.progress_percentage < 80 %}bg-warning
+                                                {% else %}bg-success{% endif %}" 
+                                                style="width: {{ last_plan.progress_percentage }}%">
+                                                {{ last_plan.progress_percentage|floatformat:0 }}%
+                                            </div>
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">No progress</span>
+                                    {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                <span class="badge bg-info">Rehabilitation Review</span>
+                            </td>
+                            <td>
+                                <span class="badge bg-warning">Pending Review</span>
+                            </td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'judges:judge_case_detail' case.pk %}" class="btn btn-outline-primary">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-outline-success" onclick="completeReview({{ case.id }})">
+                                        <i class="fas fa-check"></i>
+                                    </a>
+                                    <a href="#" class="btn btn-outline-warning" onclick="requestInfo({{ case.id }})">
+                                        <i class="fas fa-question"></i>
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        {% else %}
+            <div class="text-center py-5">
+                <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                <h5 class="text-success">All Caught Up!</h5>
+                <p class="text-muted">There are no pending judicial reviews at this time.</p>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Review Statistics -->
+<div class="row mt-4">
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-warning">{{ review_cases.count }}</h3>
+                <p class="mb-0">Pending Reviews</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-info">
+                    {% with total_plans=0 %}
+                        {% for case in review_cases %}
+                            {% for plan in case.rehabilitation_plans.all %}
+                                {% if plan.judicial_review_required %}
+                                    {{ total_plans|add:1 }}
+                                {% endif %}
+                            {% endfor %}
+                        {% endfor %}
+                    {% endwith %}
+                </h3>
+                <p class="mb-0">Rehabilitation Plans</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-center">
+            <div class="card-body">
+                <h3 class="text-success">
+                    {% with overdue=0 %}
+                        {% for case in review_cases %}
+                            {% if case.next_court_date and case.days_until_court < 0 %}
+                                {{ overdue|add:1 }}
+                            {% endif %}
+                        {% endfor %}
+                    {% endwith %}
+                </h3>
+                <p class="mb-0">Overdue Reviews</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function completeReview(caseId) {
+    if (confirm('Mark this judicial review as completed?')) {
+        fetch('{% url "judges:complete_review" %}', {
+            method: 'POST',
+            body: JSON.stringify({
+                case_id: caseId,
+                action: 'complete'
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error completing review: ' + data.error);
+            }
+        });
+    }
+}
+
+function requestInfo(caseId) {
+    const infoRequest = prompt('What additional information do you need?');
+    if (infoRequest) {
+        fetch('{% url "judges:request_info" %}', {
+            method: 'POST',
+            body: JSON.stringify({
+                case_id: caseId,
+                request: infoRequest
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Information request sent to probation officer.');
+            } else {
+                alert('Error sending request: ' + data.error);
+            }
+        });
+    }
+}
+</script>
+{% endblock %}

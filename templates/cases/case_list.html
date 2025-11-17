@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+    <h1 class="h2">Case Management</h1>
+    <div class="btn-toolbar mb-2 mb-md-0">
+        <a href="{% url 'case_create' %}" class="btn btn-primary">
+            <i class="fas fa-plus me-2"></i>Create New Case
+        </a>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card-header">
+        <h5 class="card-title mb-0">Active Cases ({{ cases.count }})</h5>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Client</th>
+                        <th>Case Officer</th>
+                        <th>Status</th>
+                        <th>Opening Date</th>
+                        <th>Objectives</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for case in cases %}
+                    <tr>
+                        <td>
+                            <a href="{% url 'client_detail' case.client.pk %}">
+                                {{ case.client.full_name }}
+                            </a>
+                        </td>
+                        <td>{{ case.officer.get_full_name }}</td>
+                        <td>
+                            <span class="badge 
+                                {% if case.status == 'open' %}bg-primary
+                                {% elif case.status == 'closed' %}bg-success
+                                {% else %}bg-warning{% endif %}">
+                                {{ case.get_status_display }}
+                            </span>
+                        </td>
+                        <td>{{ case.opening_date|date:"M d, Y" }}</td>
+                        <td>{{ case.objectives|truncatewords:5 }}</td>
+                        <td>
+                            <div class="btn-group btn-group-sm">
+                                <a href="{% url 'case_detail' case.pk %}" class="btn btn-outline-primary">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'ai_analyzer' case.client.pk %}" class="btn btn-outline-info" title="AI Analysis">
+                                    <i class="fas fa-robot"></i>
+                                </a>
+                            </div>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted py-4">
+                            <i class="fas fa-folder-open fa-2x mb-3"></i><br>
+                            No cases found. <a href="{% url 'case_create' %}">Create your first case</a>.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}
