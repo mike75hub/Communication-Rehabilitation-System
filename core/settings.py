@@ -38,6 +38,8 @@ INSTALLED_APPS = [
     'api',
     'courts',
     'judges',
+    'rest_framework',
+    'rest_framework.authtoken',
 ]
 
 MIDDLEWARE = [
